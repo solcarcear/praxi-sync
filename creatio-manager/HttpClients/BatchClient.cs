@@ -1,4 +1,5 @@
 ﻿using creatio_manager.Model;
+using creatio_manager.Model.BatchRequests;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using praxi_model;
@@ -17,7 +18,7 @@ namespace creatio_manager.HttpClients
     public class BatchClient
     {
         private readonly HttpClient _client;
-        const string contactOdataUrl = "0/odata/$batch";
+        const string batchOdataUrl = "0/odata/$batch";
         public BatchClient(HttpClient client)
         {
             _client = client;
@@ -26,14 +27,13 @@ namespace creatio_manager.HttpClients
         {
             var asdasd = new Contact();
             JsonContent content = JsonContent.Create<Contact>(asdasd);
-            var query = new Dictionary<string, string>()
-            {
-                ["$filter"] = "UsrSincronizar eq true",
-                ["$select"] = "Id,Name,Surname,Email,JobTitle,UsrSincronizar,ModifiedOn"
-            };
-            var uri = QueryHelpers.AddQueryString(contactOdataUrl, query);
 
-            var msg = new HttpRequestMessage(HttpMethod.Get, uri);
+            var msg = new HttpRequestMessage(HttpMethod.Post, batchOdataUrl);
+
+            msg.Content = JsonContent.Create(new
+            {
+                requests= new List<BatchRequest>().ToArray(),
+            });
 
             var response = await _client.SendAsync(msg);
             if (response.IsSuccessStatusCode)
