@@ -39,7 +39,7 @@ namespace creatio_manager.Services.Imp
 
                 //UPDATE CONTACT ON MUPI DB 
 
-                _mupiContactService.SyncMupiContactsFromCreatio(contactstoSync.ToList());
+                var contactsSynced = _mupiContactService.SyncMupiContactsFromCreatio(contactstoSync.ToList());
 
 
                 //UPDATE THE FLAG SYNC FOT EVERY CONTACT IN CREATIO

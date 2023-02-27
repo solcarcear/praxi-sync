@@ -16,37 +16,30 @@ namespace bussines_manager.Services.Imp
             _mupiContext = mupiContext;
         }
 
-        public ResultSyncDto SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio)
+        public List<ContactDto> SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio)
         {
-            var result = new ResultSyncDto();
+            var result = new List<ContactDto>();
+            
+            var idsContactsCreatio = ContactsCreatio.Select(x=>x.Id).ToArray();
+            //FETCH CONTACTS TO SYNC FROM CREATIO 
+            var contactsIdMupi = _mupiContext.Contact.Where(x => idsContactsCreatio.Contains(x.IdCreatio)).Select(x=>x.IdCreatio).ToList();
 
-            try
+            //SYNC CONTACTS ON MUPI DB
+            var contactsToAdd = ContactsCreatio.Where(x => !contactsIdMupi.Contains(x.Id)).ToList();
+            var contactsToUpdate = ContactsCreatio.Where(x => contactsIdMupi.Contains(x.Id)).ToList();
+
+            if (contactsToAdd.Any())
             {
-                var idsContactsCreatio = ContactsCreatio.Select(x=>x.Id).ToArray();
-
-                var contactsIdMupi = _mupiContext.Contact.Where(x => idsContactsCreatio.Contains(x.IdCreatio)).Select(x=>x.IdCreatio).ToList();
-
-                var contactsToAdd = ContactsCreatio.Where(x => !contactsIdMupi.Contains(x.Id)).ToList();
-                var contactsToUpdate = ContactsCreatio.Where(x => contactsIdMupi.Contains(x.Id)).ToList();
-
-                if (contactsToAdd.Any())
-                {
-                    AddContacts(contactsToAdd);
-                }
-                if (contactsToUpdate.Any())
-                {
-                    UpdateContacts(contactsToUpdate);
-                }
-                _mupiContext.SaveChanges();
-
+                AddContacts(contactsToAdd);
             }
-            catch (Exception ex)
+            if (contactsToUpdate.Any())
             {
-
-                result.Trace = JsonConvert.SerializeObject(ex);
-                result.Message = ex.Message;
-                result.Status = ResultSyncDto.resultError;
+                UpdateContacts(contactsToUpdate);
             }
+            _mupiContext.SaveChanges();
+
+            result.AddRange(ContactsCreatio);
+            
             return result;
         }
 

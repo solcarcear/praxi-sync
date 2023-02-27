@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "praxi-sync": {
+      "commandName": "Project",
+      "commandLineArgs": "hola\r\ntodos\r\ncaao"
+    }
+  }
+}

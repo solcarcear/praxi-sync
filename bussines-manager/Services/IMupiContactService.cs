@@ -10,6 +10,6 @@ namespace bussines_manager.Services
 {
     public interface IMupiContactService
     {
-        public ResultSyncDto SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio);
+        public List<ContactDto> SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio);
     }
 }
