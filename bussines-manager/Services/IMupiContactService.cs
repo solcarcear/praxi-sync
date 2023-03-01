@@ -11,5 +11,6 @@ namespace bussines_manager.Services
     public interface IMupiContactService
     {
         public List<ContactDto> SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio);
+        public List<ContactDto> GetContactsToSync(DateTime from);
     }
 }

@@ -11,7 +11,10 @@ using bussines_manager.DbContext;
 using creatio_manager.HttpClients;
 using creatio_manager.Services.Imp;
 using creatio_manager.Services;
-
+using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.InteropServices;
+using System.Text.Unicode;
+using System.Net.Http.Headers;
 
 namespace praxi_sync
 {
@@ -26,24 +29,38 @@ namespace praxi_sync
 
             var appSettings = config.GetSection(nameof(AppSettings)).Get<AppSettings>() ?? new AppSettings();
             var authCreatio = new CreatioAuth(appSettings);
+            var creatioUtils = new CreatioUtils();
 
             var serviceProvider = new ServiceCollection()
             .AddLogging()
             .AddSingleton(appSettings)
             .AddSingleton(authCreatio)
+            .AddSingleton(creatioUtils)
             .AddSingleton<IContactServices, ContactServices>()
-            .AddSingleton<IMupiContactService, MupiContactService>()
-
-
-
-            
+            .AddSingleton<IMupiContactService, MupiContactService>()            
             .AddDbContext<MupiDbContext>(opts => opts.UseSqlServer(appSettings.MupiDbConnection));
+
             serviceProvider.AddHttpClient<ContactClient>("AccountClient", c =>
             {
                 c.BaseAddress = new Uri($"{appSettings.UrlCreatio}");
                 // Account API ContentType
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
                 c.DefaultRequestHeaders.Add("ForceUseSession", "true");
+                c.DefaultRequestHeaders.Add("BPMCSRF", authCreatio.CsrfToken);
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler()
+                {
+                    CookieContainer = authCreatio.AuthCookie
+                };
+            });
+
+            serviceProvider.AddHttpClient<BatchClient>("BatchClient", c =>
+            {
+                c.BaseAddress = new Uri($"{appSettings.UrlCreatio}");
+                // Account API ContentType
+                c.DefaultRequestHeaders.Add("ForceUseSession", "true");
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
                 c.DefaultRequestHeaders.Add("BPMCSRF", authCreatio.CsrfToken);
             }).ConfigurePrimaryHttpMessageHandler(() =>
             {

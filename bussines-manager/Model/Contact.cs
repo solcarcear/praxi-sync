@@ -19,7 +19,9 @@ namespace bussines_manager.Model
         public DateTime? FechaNacimiento { get; set; }
         public DateTime? ModifyOn { get; set; }
 
-        public string IdCreatio { get; set; }
+        public string? IdCreatio { get; set; }
+        public string Apellido { get; set; }
+
 
     }
 }

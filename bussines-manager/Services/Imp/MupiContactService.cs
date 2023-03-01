@@ -15,18 +15,39 @@ namespace bussines_manager.Services.Imp
         {
             _mupiContext = mupiContext;
         }
+        public List<ContactDto> GetContactsToSync(DateTime from)
+        {
+            var result= new List<ContactDto>();
+
+            var contacts = _mupiContext.Contact.Where(x => x.ModifyOn >= from).ToList();
+
+
+
+
+            return contacts.Select(x => new ContactDto
+            {
+                Id = x.Id.ToString(),
+                IdCreatio = x.IdCreatio,
+                Name = x.Nombre,
+                Surname = x.Apellido,
+                Email = x.Email,
+                JobTitle = x.Tipo,
+                UsrSincronizar = false
+            }).ToList();
+        }
+
 
         public List<ContactDto> SyncMupiContactsFromCreatio(List<ContactDto> ContactsCreatio)
         {
             var result = new List<ContactDto>();
 
-            var idsContactsCreatio = ContactsCreatio.Select(x => x.Id).ToArray();
-            //FETCH CONTACTS TO SYNC FROM CREATIO 
+            var idsContactsCreatio = ContactsCreatio.Select(x => x.IdCreatio).ToArray();
+            //FETCH CONTACTS TO SYNC FROM THE LIST
             var contactsIdMupi = _mupiContext.Contact.Where(x => idsContactsCreatio.Contains(x.IdCreatio)).Select(x => x.IdCreatio).ToList();
 
             //SYNC CONTACTS ON MUPI DB
-            var contactsToAdd = ContactsCreatio.Where(x => !contactsIdMupi.Contains(x.Id)).ToList();
-            var contactsToUpdate = ContactsCreatio.Where(x => contactsIdMupi.Contains(x.Id)).ToList();
+            var contactsToAdd = ContactsCreatio.Where(x => !contactsIdMupi.Contains(x.IdCreatio)).ToList();
+            var contactsToUpdate = ContactsCreatio.Where(x => contactsIdMupi.Contains(x.IdCreatio)).ToList();
 
             if (contactsToAdd.Any())
             {
@@ -53,8 +74,9 @@ namespace bussines_manager.Services.Imp
             {
                 _mupiContext.Contact.Add(new Contact
                 {
-                    IdCreatio= contact.Id,
-                    Nombre= $"{contact.Name}{contact.Surname}",
+                    IdCreatio= contact.IdCreatio,
+                    Nombre= contact.Name,
+                    Apellido = contact.Surname?? " ",
                     Tipo = contact.JobTitle,
                     Email= contact.Email,
                     FechaNacimiento= DateTime.Now.AddYears(-30),
@@ -64,13 +86,14 @@ namespace bussines_manager.Services.Imp
         }
         private void UpdateContacts(List<ContactDto> ContactsCreatio)
         {
-            var idsContactsCreatio = ContactsCreatio.Select(x => x.Id).ToArray();
+            var idsContactsCreatio = ContactsCreatio.Select(x => x.IdCreatio).ToArray();
             var contactsIdMupi = _mupiContext.Contact.Where(x => idsContactsCreatio.Contains(x.IdCreatio)).ToList();
 
             foreach (var elem in contactsIdMupi)
             {
-                var creatioContact = ContactsCreatio.Find(x => x.Id == elem.IdCreatio);
-                elem.Nombre = $"{creatioContact?.Name}{creatioContact?.Surname}";
+                var creatioContact = ContactsCreatio.Find(x => x.IdCreatio == elem.IdCreatio);
+                elem.Nombre = creatioContact?.Name ?? "";
+                elem.Apellido = creatioContact?.Surname ?? " ";
                 elem.Tipo = creatioContact?.JobTitle ?? "";
                 elem.Email = creatioContact?.Email ?? "";
                 elem.ModifyOn = DateTime.Now;
@@ -79,7 +102,8 @@ namespace bussines_manager.Services.Imp
         }
 
 
-        //private void PopulateContacts() {
+        //private void PopulateContacts()
+        //{
         //    for (int i = 0; i < 10001; i++)
         //    {
         //        var typeContact = (i % 3 == 0) ? 3 : (i % 2 == 0) ? 2 : 1;
@@ -87,6 +111,7 @@ namespace bussines_manager.Services.Imp
         //        {
         //            IdCreatio = "",
         //            Nombre = $"batcher{i}",
+        //            Apellido = $"test{i}",
         //            Tipo = $"batcherType{typeContact}",
         //            Email = $"nick{i}@mail.com",
         //            FechaNacimiento = DateTime.Now.AddYears(-30),

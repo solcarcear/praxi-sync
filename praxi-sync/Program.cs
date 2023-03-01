@@ -12,7 +12,7 @@ internal class Program
 
         var contactServices = services.GetService<IContactServices>();
 
-        var asas = await contactServices?.SyncContacts();
+        var asas = await contactServices?.SyncContactsMupiToCreatio(DateTime.Now.AddYears(-1));
 
         Console.WriteLine("Hello, World!");
         Console.ReadLine();
