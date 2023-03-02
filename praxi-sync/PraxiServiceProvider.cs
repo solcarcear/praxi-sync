@@ -11,10 +11,6 @@ using bussines_manager.DbContext;
 using creatio_manager.HttpClients;
 using creatio_manager.Services.Imp;
 using creatio_manager.Services;
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.InteropServices;
-using System.Text.Unicode;
-using System.Net.Http.Headers;
 
 namespace praxi_sync
 {
@@ -58,6 +54,7 @@ namespace praxi_sync
             serviceProvider.AddHttpClient<BatchClient>("BatchClient", c =>
             {
                 c.BaseAddress = new Uri($"{appSettings.UrlCreatio}");
+                c.Timeout = TimeSpan.FromHours(6);
                 // Account API ContentType
                 c.DefaultRequestHeaders.Add("ForceUseSession", "true");
                 c.DefaultRequestHeaders.Add("Accept", "application/json");

@@ -9,7 +9,7 @@ namespace creatio_manager.Model.BatchRequests
 
         public string Id { get; set; }
         public int Status { get; set; }
-        public JsonContent Body { get; set; }
+        public object Body { get; set; }
 
     }
 }

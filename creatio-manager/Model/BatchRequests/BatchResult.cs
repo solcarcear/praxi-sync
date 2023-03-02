@@ -9,8 +9,8 @@ namespace creatio_manager.Model.BatchRequests
     public class BatchResult
     {
         public BatchResult() {
-            Responses= new BatchResponse[] { };
+            Responses= new List<BatchResponse> ();
         }
-        public BatchResponse[] Responses { get; set; }
+        public List<BatchResponse> Responses { get; set; }
     }
 }

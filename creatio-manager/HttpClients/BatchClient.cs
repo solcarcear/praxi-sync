@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace creatio_manager.HttpClients
@@ -27,9 +28,9 @@ namespace creatio_manager.HttpClients
         public async Task<BatchResult> RequestBatch(IEnumerable<BatchRequest> requests)
         { 
             var result = new BatchResult();
-            for (int i = 0; i < requests.Count(); i= i+1)
+            for (int i = 0; i < requests.Count(); i= i+10)
             {
-                var batchRequest = requests.Skip(i).Take(1);
+                var batchRequest = requests.Skip(i).Take(10);
 
                 var batchResults = await ExecuteBatch(batchRequest);
 
@@ -49,40 +50,34 @@ namespace creatio_manager.HttpClients
 
             var msg = new HttpRequestMessage(HttpMethod.Post, batchOdataUrl);
 
-            var bodyContent = _creatioUtils.ParseObjectToBodyRequest(new
+            var requestBody = new BatchRequests
             {
-                requests = requests.Select(x =>
-
-                    new
-                    {
-                        x.Id,
-                        x.Method,
-                        x.Url,
-                        Body = JsonConvert.DeserializeObject(x.Body.Value.ToString()),
-                        Headers = JsonConvert.DeserializeObject(x.Headers.Value.ToString())
-                    }
+                Requests = requests,
+            };
 
 
-                ).ToArray(),
-            });
-
+            var body = JsonConvert.SerializeObject(requestBody,
+                            Formatting.None,
+                            new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            });
             msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            msg.Content = new StringContent(JsonConvert.SerializeObject(bodyContent), Encoding.UTF8);
+            msg.Content = new StringContent(body, Encoding.UTF8);
             msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
 
 
 
             var response = await _client.SendAsync(msg);
 
-          
+
             if (response.IsSuccessStatusCode)
             {
                 var responseStr = await response.Content.ReadAsStringAsync();
                 result = JsonConvert.DeserializeObject<BatchResult>(responseStr);
             }
 
-            return result;
+            return result ?? new BatchResult();
 
 
         }

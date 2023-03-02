@@ -81,9 +81,12 @@ namespace creatio_manager.Services.Imp
 
                 //SEND REQUESTS TO CREATIO
 
-                var responses = _batchClient.RequestBatch(batchRequests);
+                var responses =await _batchClient.RequestBatch(batchRequests);
 
                 //MANAGE RESPONSES REQUESTS 
+
+
+
             }
             catch (Exception ex)
             {
@@ -103,8 +106,8 @@ namespace creatio_manager.Services.Imp
             var count = 1;
             foreach (var contact in contacts)
             {
-                
-                var url= nameof(Contact);
+
+                var url = nameof(Contact);
                 var httpVerb = BatchRequest.POST;
                 if (!string.IsNullOrEmpty(contact.IdCreatio))
                 {
@@ -123,21 +126,21 @@ namespace creatio_manager.Services.Imp
                     UsrSincronizar = false
                 };
 
-                var headers = new BatchHeaders();
 
                 var request = new BatchRequest
                 {
                     Id = $"R{count}",
                     Method = httpVerb,
                     Url = url,
-                    Body = _creatioUtils.ParseObjectToBodyRequest(creatioContact),                  
-                    Headers = _creatioUtils.ParseObjectToBodyRequest(headers)
+                    Headers = new BatchHeaders(),
+                    Body = creatioContact
                 };
                 result.Add(request);
                 count++;
+                //        Body = _creatioUtils.ParseObjectToBodyRequest(creatioContact),                  
 
             }
-            
+
             return result;
 
         }
